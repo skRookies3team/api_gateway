@@ -1,0 +1,63 @@
+server:
+  port: "${PORT}"
+---
+spring:
+  application:
+    name: apigateway-service
+  cloud:
+    gateway:
+      server:
+        webflux:
+      #spring cloud gateway 공통 filter
+          default-filters:
+            - name: GlobalFilter
+              args:
+                baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
+                preLogger: true
+                postLogger: true
+      #라우팅하는 서비스들
+          routes:
+            #User Swagger
+            - id: user-service-docs
+              uri: "${USER_SERVICE}"
+              predicates:
+                - Path=/api/users/v3/api-docs
+            - id: user-service
+              uri: "${USER_SERVICE}"
+              predicates:
+              - Path=/api/users/login
+              - Method=POST
+            - id: user-service
+              uri: "${USER_SERVICE}"
+              predicates:
+                - Path=/api/users/create
+                - Method=POST
+            - id: user-service
+              uri: "${USER_SERVICE}"
+              predicates:
+                - Path=/api/users/**
+              #JWT 검증을 위한 Custom GatewayFilter
+              filters:
+                - AuthorizationHeaderFilter
+            - id: pet-service
+              uri: "${USER_SERVICE}"
+              predicates:
+                - Path=/api/pets/**
+              #JWT 검증을 위한 Custom GatewayFilter
+              filters:
+                - AuthorizationHeaderFilter
+
+
+
+token:
+  expiration_time: "${TOKEN_EXPIRATION_TIME}"
+  secret: "${TOKEN_SECRET}"
+
+springdoc:
+  swagger-ui:
+    #Swagger UI의 엔드포인트: http://###/swagger-ui/index.html
+    path: /swagger-ui/index.html
+    #마이크로서비스들의 OpenAPI 문서를 가져와 통합된 Swagger UI 페이지에 보여줌
+    urls:
+      - url: "${USER_SWAGGER}"
+        name: user-service
