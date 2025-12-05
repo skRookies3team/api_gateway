@@ -1,5 +1,6 @@
 package com.example.gateway.filter;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -48,13 +49,14 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
             String jwt = authorizationHeader.replace("Bearer ", "");
             //jwt에서 사용자 id 추출
-            String userId = isJwtValid(jwt);
-            if (userId == null) {
+            JwtUser user = isJwtValid(jwt);
+            if (user == null) {
                 return onError(exchange, "JWT token is not valid", HttpStatus.UNAUTHORIZED);
             }
             //추출된 id를 요청 헤더에 추가
             ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-USER-ID", userId)
+                    .header("X-USER-ID", user.getUserId())
+                    .header("X-USER-NAME", user.getUsername())
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
@@ -71,26 +73,47 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         return response.writeWith(Flux.just(buffer));
     }
 
-    private String isJwtValid(String jwt) {
+    private JwtUser isJwtValid(String jwt) {
         byte[] secretKeyBytes = env.getProperty("token.secret").getBytes();
         SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
         //jwt를 파싱하고 Body에서 Subject(사용자 ID)를 추출
-        String subject = null;
+        String userId = null;
+        String username = null;
 
         try {
             JwtParser jwtParser = Jwts.parser()
                     .setSigningKey(signingKey)
                     .build();
 
-            subject = jwtParser.parseClaimsJws(jwt).getBody().getSubject();
+            Claims claims = jwtParser.parseClaimsJws(jwt).getBody();
+            userId = claims.getSubject();
+            username = claims.get("username", String.class);
+
         } catch (Exception ex) {
             log.error("JWT 토큰 파싱 오류: {}", ex.getMessage());
         }
 
-        if (subject != null || !subject.isEmpty()) {
-            return subject;
+        if (userId != null && !userId.isEmpty() && username != null && !username.isEmpty()) {
+            return new JwtUser(userId, username);
         }
 
         return null;
+    }
+
+    public static class JwtUser {
+        private final String userId;
+        private final String username;
+        public JwtUser(String userId, String username) {
+            this.userId = userId;
+            this.username = username;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
     }
 }
