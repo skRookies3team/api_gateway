@@ -29,7 +29,7 @@ spring:
               predicates:
                 - Path=/api/social/v3/api-docs
               filters:
-                - RewritePath=/api/social/v3/api-docs, /v3/api-docs
+                - SetPath=/v3/api-docs  # 경로를 강제로 /v3/api-docs로 고정
 
             # User Service
             - id: user-service
@@ -47,8 +47,8 @@ spring:
               predicates:
                 - Path=/api/users/**, /api/pets/**, /api/archives/**
               #JWT 검증을 위한 Custom GatewayFilter
-              filters:
-                - AuthorizationHeaderFilter
+#              filters:
+#                - AuthorizationHeaderFilter
 
             # Social Service 라우팅 부분 확인
             - id: social-service
@@ -56,8 +56,8 @@ spring:
               predicates:
                 # ✅ Path에 /api/follows/** 가 반드시 있어야 함!
                 - Path=/api/feeds/**, /api/comments/**, /api/follows/**
-              filters:
-                - AuthorizationHeaderFilter
+#              filters:
+#                - AuthorizationHeaderFilter
 
 token:
   expiration_time: "${TOKEN_EXPIRATION_TIME}"
