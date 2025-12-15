@@ -49,6 +49,10 @@ spring:
               #JWT 검증을 위한 Custom GatewayFilter
 #              filters:
 #                - AuthorizationHeaderFilter
+            - id: pet-service
+              uri: "${USER_SERVICE}"
+              predicates:
+                - Path=/api/pets/**, /api/images/**
 
             # Social Service 라우팅 부분 확인
             - id: social-service
