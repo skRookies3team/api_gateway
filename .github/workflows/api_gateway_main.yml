@@ -37,6 +37,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq curl
 
+      # Docker Hub 로그인 (태그 조회보다 먼저)
+      - name: Docker login
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       # Docker Hub에서 api-gateway 태그만 조회 후 버전 증가
       - name: Get latest apigateway tag and bump version
         id: bump
@@ -46,11 +52,13 @@ jobs:
 
           echo "Fetching tags for $IMAGE ($SERVICE only)..."
 
-          # 태그 목록을 먼저 변수로 저장
+          # results가 없거나 null이어도 죽지 않게 방어
           TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
-            | jq -r '.results[].name')
+            | jq -r '.results // [] | .[].name')
 
-          # TAGS 변수에서 필터링
+          echo "Found tags:"
+          echo "$TAGS"
+
           LATEST_VERSION=$(echo "$TAGS" \
             | grep "^${SERVICE}-[0-9]\+\.[0-9]\+$" \
             | sed "s/^${SERVICE}-//" \
@@ -79,12 +87,6 @@ jobs:
           echo "New tag: $NEW_TAG"
 
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
-
-      # Docker Hub 로그인
-      - name: Docker login
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
-            -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       # Docker build & push
       # api-gateway-버전
