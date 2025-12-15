@@ -14,36 +14,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # source Checkout 
+      # 1️⃣ Source Checkout
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # JDK 17 설정 (JAR 빌드용)
+      # 2️⃣ JDK 17 설정 (JAR 빌드)
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # JAR 생성 (skip test)
+      # 3️⃣ JAR 빌드 (테스트 스킵)
       - name: Build JAR (skip test)
         run: |
           chmod +x ./gradlew
           ./gradlew build -x test
 
-      # jq, curl 설치 (Docker Hub 태그 조회용)
+      # 4️⃣ jq, curl 설치
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y jq curl
 
-      # Docker Hub 로그인 (태그 조회보다 먼저)
+      # 5️⃣ Docker Hub 로그인 (docker CLI용)
       - name: Docker login
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
             -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Docker Hub에서 api-gateway 태그만 조회 후 버전 증가
+      # 6️⃣ Docker Hub 태그 조회 + 버전 증가 (⭐ 핵심)
       - name: Get latest apigateway tag and bump version
         id: bump
         run: |
@@ -52,8 +52,10 @@ jobs:
 
           echo "Fetching tags for $IMAGE ($SERVICE only)..."
 
-          # results가 없거나 null이어도 죽지 않게 방어
-          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
+          # 🔑 Private repo 대응: curl에 인증 포함
+          TAGS=$(curl -s \
+            -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+            "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
             | jq -r '.results // [] | .[].name')
 
           echo "Found tags:"
@@ -70,14 +72,7 @@ jobs:
           else
             MAJOR=$(echo "$LATEST_VERSION" | cut -d. -f1)
             MINOR=$(echo "$LATEST_VERSION" | cut -d. -f2)
-
-            if [ "$MINOR" -eq 9 ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-            else
-              MINOR=$((MINOR + 1))
-            fi
-
+            MINOR=$((MINOR + 1))
             NEW_VERSION="${MAJOR}.${MINOR}"
           fi
 
@@ -88,9 +83,7 @@ jobs:
 
           echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
-      # Docker build & push
-      # api-gateway-버전
-      # api-gateway-latest
+      # 7️⃣ Docker Build & Push
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -102,7 +95,7 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ steps.bump.outputs.tag }}
             ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.SERVICE_NAME }}-latest
 
-      # 완료 로그
+      # 8️⃣ 완료 로그
       - name: Done
         run: |
           echo "Docker image pushed successfully!!"
