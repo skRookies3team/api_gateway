@@ -1,7 +1,9 @@
+server:
+  port: 8000
+
 spring:
   application:
     name: apigateway-service
-
   cloud:
     gateway:
       server:
@@ -75,14 +77,3 @@ spring:
 token:
   expiration_time: ${TOKEN_EXPIRATION_TIME}
   secret: ${TOKEN_SECRET}
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui/index.html
-    urls:
-      - url: /api/users/v3/api-docs
-        name: user-service
-      - url: /api/social/v3/api-docs
-        name: social-service
-      - url: /api/diaries/v3/api-docs
-        name: diary-service
