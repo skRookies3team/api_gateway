@@ -46,8 +46,12 @@ jobs:
 
           echo "Fetching tags for $IMAGE ($SERVICE only)..."
 
-          LATEST_VERSION=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
-            | jq -r '.results[].name' \
+          # 태그 목록을 먼저 변수로 저장
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
+            | jq -r '.results[].name')
+
+          # TAGS 변수에서 필터링
+          LATEST_VERSION=$(echo "$TAGS" \
             | grep "^${SERVICE}-[0-9]\+\.[0-9]\+$" \
             | sed "s/^${SERVICE}-//" \
             | sort -V \
