@@ -1,0 +1,25 @@
+server:
+  port: 8000
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "https://d3uvkb1qxxcp2y.cloudfront.net"
+                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+                allowedHeaders: ["*"]
+                allowCredentials: true
+
+# 서비스 주소 (Kubernetes Service DNS)
+USER_SERVICE: http://user-service.default.svc.cluster.local
+SOCIAL_SERVICE: http://social-service.default.svc.cluster.local
+DIARY_SERVICE: http://diary-service.default.svc.cluster.local
+
+# JWT (실제 값은 Kubernetes Secret)
+TOKEN_EXPIRATION_TIME: 86400000
+TOKEN_SECRET: ${TOKEN_SECRET}
