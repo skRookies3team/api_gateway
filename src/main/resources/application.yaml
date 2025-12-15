@@ -1,76 +1,105 @@
 server:
-  port: "${PORT}"
----
+  port: 8000
+
 spring:
   application:
     name: apigateway-service
   cloud:
     gateway:
-      server:
-        webflux:
-          #spring cloud gateway 공통 filter
-          default-filters:
-            - name: GlobalFilter
-              args:
-                baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
-                preLogger: true
-                postLogger: true
-          #라우팅하는 서비스들
-          routes:
-            #User Swagger
-            - id: user-service-docs
-              uri: "${USER_SERVICE}"
-              predicates:
-                - Path=/api/users/v3/api-docs
+      # 1. CORS 설정 (프론트엔드 연동 필수)
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
 
-            # Social Swagger (Diary 대체)
-            - id: social-service-docs
-              uri: "${SOCIAL_SERVICE}"
-              predicates:
-                - Path=/api/social/v3/api-docs
-              filters:
-                - SetPath=/v3/api-docs  # 경로를 강제로 /v3/api-docs로 고정
+      # 2. 공통 필터 설정
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
+            preLogger: true
+            postLogger: true
 
-            # User Service
-            - id: user-service
-              uri: "${USER_SERVICE}"
-              predicates:
-                - Path=/api/users/login
-                - Method=POST
-            - id: user-service
-              uri: "${USER_SERVICE}"
-              predicates:
-                - Path=/api/users/create
-                - Method=POST
-            - id: user-service
-              uri: "${USER_SERVICE}"
-              predicates:
-                - Path=/api/users/**, /api/pets/**, /api/archives/**
-              #JWT 검증을 위한 Custom GatewayFilter
-#              filters:
-#                - AuthorizationHeaderFilter
+      # 3. 라우팅 설정
+      routes:
+        # --- Swagger (인증 불필요) ---
+        - id: user-service-docs
+          # 환경변수 USER_SERVICE가 있으면 그걸 쓰고, 없으면 http://localhost:8080 사용
+          uri: ${USER_SERVICE:http://localhost:8080}
+          predicates:
+            - Path=/api/users/v3/api-docs
 
-            # Social Service 라우팅 부분 확인
-            - id: social-service
-              uri: "${SOCIAL_SERVICE}"
-              predicates:
-                # ✅ Path에 /api/follows/** 가 반드시 있어야 함!
-                - Path=/api/feeds/**, /api/comments/**, /api/follows/**
-#              filters:
-#                - AuthorizationHeaderFilter
+        - id: social-service-docs
+          # 환경변수 SOCIAL_SERVICE가 있으면 그걸 쓰고, 없으면 http://localhost:8083 사용
+          uri: ${SOCIAL_SERVICE:http://localhost:8083}
+          predicates:
+            - Path=/api/social/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
 
+        - id: diary-service-docs
+          uri: ${DIARY_SERVICE:http://localhost:8087}
+          predicates:
+            - Path=/api/diaries/v3/api-docs
+
+        # --- User Service: 로그인/회원가입 (인증 필터 미적용) ---
+        - id: user-service-login
+          uri: ${USER_SERVICE:http://localhost:8080}
+          predicates:
+            - Path=/api/users/login
+            - Method=POST
+
+        - id: user-service-signup
+          uri: ${USER_SERVICE:http://localhost:8080}
+          predicates:
+            - Path=/api/users/signup, /api/users/create
+            - Method=POST
+
+        # --- User Service: 일반 기능 (인증 필터 적용) ---
+        - id: user-service
+          uri: ${USER_SERVICE:http://localhost:8080}
+          predicates:
+            - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # --- Social Service: 피드/댓글/팔로우/메시지 (인증 필터 적용) ---
+        - id: social-service
+          uri: ${SOCIAL_SERVICE:http://localhost:8083}
+          predicates:
+            - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: diary-service
+          uri: ${DIARY_SERVICE:http://localhost:8087}
+          predicates:
+            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**
+          filters:
+            - AuthorizationHeaderFilter
+
+# JWT 토큰 설정 (환경변수로 분리 가능)
 token:
-  expiration_time: "${TOKEN_EXPIRATION_TIME}"
-  secret: "${TOKEN_SECRET}"
+  expiration_time: ${TOKEN_EXPIRATION_TIME:86400000}
+  secret: ${TOKEN_SECRET:c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK}
 
 springdoc:
   swagger-ui:
-    #Swagger UI의 엔드포인트: http://###/swagger-ui/index.html
     path: /swagger-ui/index.html
-    #마이크로서비스들의 OpenAPI 문서를 가져와 통합된 Swagger UI 페이지에 보여줌
     urls:
-      - url: "${USER_SWAGGER}"
+      - url: /api/users/v3/api-docs
         name: user-service
-      # Social Service Swagger 정보
-      - url: "${SOCIAL_SWAGGER}"
+      - url: /api/social/v3/api-docs
         name: social-service
+      - url: ${DIARY_SWAGGER:/api/diary/v3/api-docs}
+        name: diary-service
