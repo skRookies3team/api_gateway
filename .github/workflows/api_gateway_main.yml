@@ -1,103 +1,68 @@
-name: Build & Push API Gateway Docker Image
+name: Build & Deploy API Gateway
 
 on:
   push:
     branches:
       - main
 
-env:
-  DOCKER_IMAGE: petlog
-  SERVICE_NAME: api-gateway
-
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Source Checkout
-      - name: Checkout source
+      # api_gateway repo 체크아웃
+      - name: Checkout api_gateway repo
         uses: actions/checkout@v4
 
-      # 2️⃣ JDK 17 설정 (JAR 빌드)
+      # JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3️⃣ JAR 빌드 (테스트 스킵)
-      - name: Build JAR (skip test)
+      # JAR 빌드
+      - name: Build JAR
         run: |
           chmod +x ./gradlew
           ./gradlew build -x test
 
-      # 4️⃣ jq, curl 설치
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl
-
-      # 5️⃣ Docker Hub 로그인 (docker CLI용)
+      # Docker Hub 로그인
       - name: Docker login
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
             -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # 6️⃣ Docker Hub 태그 조회 + 버전 증가 (⭐ 핵심)
-      - name: Get latest apigateway tag and bump version
-        id: bump
-        run: |
-          IMAGE=${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}
-          SERVICE=${{ env.SERVICE_NAME }}
-
-          echo "Fetching tags for $IMAGE ($SERVICE only)..."
-
-          # 🔑 Private repo 대응: curl에 인증 포함
-          TAGS=$(curl -s \
-            -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
-            "https://hub.docker.com/v2/repositories/$IMAGE/tags/?page_size=1000" \
-            | jq -r '.results // [] | .[].name')
-
-          echo "Found tags:"
-          echo "$TAGS"
-
-          LATEST_VERSION=$(echo "$TAGS" \
-            | grep "^${SERVICE}-[0-9]\+\.[0-9]\+$" \
-            | sed "s/^${SERVICE}-//" \
-            | sort -V \
-            | tail -n 1)
-
-          if [ -z "$LATEST_VERSION" ]; then
-            NEW_VERSION="0.1"
-          else
-            MAJOR=$(echo "$LATEST_VERSION" | cut -d. -f1)
-            MINOR=$(echo "$LATEST_VERSION" | cut -d. -f2)
-            MINOR=$((MINOR + 1))
-            NEW_VERSION="${MAJOR}.${MINOR}"
-          fi
-
-          NEW_TAG="${SERVICE}-${NEW_VERSION}"
-
-          echo "Latest version: $LATEST_VERSION"
-          echo "New tag: $NEW_TAG"
-
-          echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
-
-      # 7️⃣ Docker Build & Push
-      - name: Build and Push Docker Image
+      # Docker 이미지 빌드 & 푸시 (SHA 태그)
+      - name: Build & Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ steps.bump.outputs.tag }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.SERVICE_NAME }}-latest
+            hands7/petlog:api-gateway-${{ github.sha }}
 
-      # 8️⃣ 완료 로그
-      - name: Done
-        run: |
-          echo "Docker image pushed successfully!!"
-          echo " - ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ steps.bump.outputs.tag }}"
-          echo " - ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.SERVICE_NAME }}-latest"
+      # # mainifest_repo 체크아웃 
+      # - name: Checkout manifest repo
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: skRookies3team/mainifest_repo
+      #     token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+      #     path: manifest
+
+      # # values.yaml 이미지 태그 변경
+      # - name: Update image tag in values.yaml
+      #   run: |
+      #     cd manifest/api-gateway
+      #     sed -i "s|tag:.*|tag: api-gateway-${{ github.sha }}|" values.yaml
+
+      # # commit & push 
+      # - name: Commit & Push manifest repo
+      #   run: |
+      #     cd manifest
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@github.com"
+      #     git add .
+      #     git commit -m "deploy(api-gateway): api-gateway-${{ github.sha }}"
+      #     git push
