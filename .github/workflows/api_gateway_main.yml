@@ -99,6 +99,6 @@ jobs:
       # 완료 로그
       - name: Done
         run: |
-          echo "Docker image pushed successfully"
+          echo "Docker image pushed successfully!!"
           echo " - ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ steps.bump.outputs.tag }}"
           echo " - ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.SERVICE_NAME }}-latest"
