@@ -1,0 +1,25 @@
+server:
+  port: 8000
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:5173"
+                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+                allowedHeaders: ["*"]
+                allowCredentials: true
+
+# 서비스 주소 (dev)
+USER_SERVICE: http://localhost:8080
+SOCIAL_SERVICE: http://localhost:8083
+DIARY_SERVICE: http://localhost:8087
+
+# JWT
+TOKEN_EXPIRATION_TIME: 86400000
+TOKEN_SECRET: dev-secret-key
