@@ -43,26 +43,26 @@ jobs:
           tags: |
             hands7/petlog:api-gateway-${{ github.sha }}
 
-      # # mainifest_repo 체크아웃 
-      # - name: Checkout manifest repo
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: skRookies3team/mainifest_repo
-      #     token: ${{ secrets.MANIFEST_REPO_TOKEN }}
-      #     path: manifest
+      # mainifest_repo 체크아웃 
+      - name: Checkout manifest repo
+        uses: actions/checkout@v4
+        with:
+          repository: skRookies3team/mainifest_repo
+          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+          path: manifest
 
-      # # values.yaml 이미지 태그 변경
-      # - name: Update image tag in values.yaml
-      #   run: |
-      #     cd manifest/api-gateway
-      #     sed -i "s|tag:.*|tag: api-gateway-${{ github.sha }}|" values.yaml
+      # values.yaml 이미지 태그 변경
+      - name: Update image tag in values.yaml
+        run: |
+          cd manifest/charts/api-gateway
+          sed -i "/image:/,/tag:/ s|tag:.*|tag: api-gateway-${{ github.sha }}|" values.yaml
 
-      # # commit & push 
-      # - name: Commit & Push manifest repo
-      #   run: |
-      #     cd manifest
-      #     git config user.name "github-actions"
-      #     git config user.email "github-actions@github.com"
-      #     git add .
-      #     git commit -m "deploy(api-gateway): api-gateway-${{ github.sha }}"
-      #     git push
+      # commit & push 
+      - name: Commit & Push manifest repo
+        run: |
+          cd manifest
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "deploy(api-gateway): api-gateway-${{ github.sha }}"
+          git push
