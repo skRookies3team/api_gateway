@@ -17,25 +17,6 @@ USER_SERVICE: http://user-service.default.svc.cluster.local
 SOCIAL_SERVICE: http://social-service.default.svc.cluster.local
 DIARY_SERVICE: http://diary-service.default.svc.cluster.local
 
-spring:
-  cloud:
-    gateway:
-      server:
-        webflux:
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins:
-                  - "https://d3uvkb1qxxcp2y.cloudfront.net"
-                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
-                allowedHeaders: ["*"]
-                allowCredentials: true
-
-# 서비스 주소 (Kubernetes Service DNS) ~..~
-USER_SERVICE: http://user-service.default.svc.cluster.local
-SOCIAL_SERVICE: http://social-service.default.svc.cluster.local
-DIARY_SERVICE: http://diary-service.default.svc.cluster.local
-
 management:
   endpoints:
     web:
