@@ -43,11 +43,11 @@ jobs:
           tags: |
             hands7/petlog:api-gateway-${{ github.sha }}
 
-      # mainifest_repo 체크아웃 
+      # manifest_repo 체크아웃
       - name: Checkout manifest repo
         uses: actions/checkout@v4
         with:
-          repository: skRookies3team/mainifest_repo
+          repository: skRookies3team/manifest_repo
           token: ${{ secrets.MANIFEST_REPO_TOKEN }}
           path: manifest
 
