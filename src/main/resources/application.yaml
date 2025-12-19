@@ -47,7 +47,6 @@ spring:
               uri: ${USER_SERVICE}
               predicates:
                 - Path=/api/users/signup
-                - Path=/api/users/create
 #                - Method=POST
 
             # --- User Service (AUTH) ---
