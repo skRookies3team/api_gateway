@@ -30,9 +30,6 @@ public class GlobalFilter extends AbstractGatewayFilterFactory<GlobalFilter.Conf
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
 
-            log.warn("GLOBAL FILTER PATH = {}", request.getURI().getPath());
-            log.warn("GLOBAL FILTER METHOD = {}", request.getMethod());
-
             //pre-filter 로직(요청 처리 전)
             //config의 baseMessage와 요청의 발신지 ip를 로그로 출력한다.
             log.info("Global Filter baseMessage: {}, {}", config.getBaseMessage(), request.getRemoteAddress());

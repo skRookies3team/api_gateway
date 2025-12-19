@@ -46,7 +46,7 @@ spring:
             - id: user-service-signup
               uri: ${USER_SERVICE}
               predicates:
-                - Path=/api/users/signup/**, /api/users/create
+                - Path=/api/users/signup/**
 #                - Method=POST
 
             # --- User Service (AUTH) ---
