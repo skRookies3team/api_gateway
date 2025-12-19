@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpMethod;
 
 @Component
 @Slf4j
@@ -40,26 +41,8 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            ServerHttpRequest request = exchange.getRequest();
-
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
-            }
-
-            String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-            String jwt = authorizationHeader.replace("Bearer ", "");
-            //jwt에서 사용자 id 추출
-            JwtUser user = isJwtValid(jwt);
-            if (user == null) {
-                return onError(exchange, "JWT token is not valid", HttpStatus.UNAUTHORIZED);
-            }
-            //추출된 id를 요청 헤더에 추가
-            ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-USER-ID", user.getUserId())
-                    .header("X-USER-NAME", user.getUsername())
-                    .build();
-
-            return chain.filter(exchange.mutate().request(modifiedRequest).build());
+            log.error("=== AUTH FILTER HIT ===");
+            return chain.filter(exchange);
         };
     }
 
