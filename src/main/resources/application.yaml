@@ -37,11 +37,6 @@ spring:
                 - Path=/api/diaries/v3/api-docs
 
             # --- User Service (NO AUTH) ---
-            - id: debug-signup
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/users/signup
-
             - id: user-service-login
               uri: ${USER_SERVICE}
               predicates:
@@ -51,7 +46,7 @@ spring:
             - id: user-service-signup
               uri: ${USER_SERVICE}
               predicates:
-                - Path=/api/users/signup
+                - Path=/api/users/signup/**, /api/users/create
 #                - Method=POST
 
             # --- User Service (AUTH) ---
