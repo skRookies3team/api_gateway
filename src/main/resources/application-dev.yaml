@@ -1,29 +1,13 @@
-spring:
-  cloud:
-    gateway:
-      server:
-        webflux:
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins:
-                  - "http://localhost:5173"
-                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
-                allowedHeaders: ["*"]
-                allowCredentials: true
+# [Dev 환경 변수 설정]
 
-# 서비스 주소 (dev)
+# 1. 서비스 주소 (Localhost)
 USER_SERVICE: http://localhost:8080
 SOCIAL_SERVICE: http://localhost:8083
 DIARY_SERVICE: http://localhost:8087
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui/index.html
-    urls:
-      - url: /api/users/v3/api-docs
-        name: user-service
-      - url: /api/social/v3/api-docs
-        name: social-service
-      - url: /api/diaries/v3/api-docs
-        name: diary-service
+# 2. CORS 허용 도메인 (Frontend Local)
+CORS_ALLOWED_ORIGIN: http://localhost:5173
+
+# 3. JWT 설정 (개발용 임시값)
+TOKEN_SECRET: my_super_secret_key_for_dev_environment_must_be_long_enough
+TOKEN_EXPIRATION_TIME: 86400000

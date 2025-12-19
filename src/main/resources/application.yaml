@@ -8,7 +8,23 @@ spring:
     gateway:
       server:
         webflux:
-          # 공통 필터 설정
+          # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "${CORS_ALLOWED_ORIGIN}"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+
+          # 공통 필터
           default-filters:
             - name: GlobalFilter
               args:
@@ -16,9 +32,9 @@ spring:
                 preLogger: true
                 postLogger: true
 
-          # 라우팅 설정 (구조는 공통)
+          # [라우팅 설정] URI를 환경변수(${..._SERVICE})로 설정
           routes:
-            # --- Swagger ---
+            # --- Swagger API Docs ---
             - id: user-service-docs
               uri: ${USER_SERVICE}
               predicates:
@@ -36,7 +52,7 @@ spring:
               predicates:
                 - Path=/api/diaries/v3/api-docs
 
-            # --- User Service (NO AUTH) ---
+            # --- User Service (로그인/회원가입) ---
             - id: user-service-login
               uri: ${USER_SERVICE}
               predicates:
@@ -49,19 +65,19 @@ spring:
                 - Path=/api/users/signup/**
 #                - Method=POST
 
-            # --- User Service (AUTH) ---
+            # --- User Service (인증 필요) ---
             - id: user-service
               uri: ${USER_SERVICE}
               predicates:
-                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**
+                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
               filters:
                 - AuthorizationHeaderFilter
 
-            # --- Social Service ---
+            # --- Social Service (검색 기능 포함) ---
             - id: social-service
               uri: ${SOCIAL_SERVICE}
               predicates:
-                - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**
+                - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
               filters:
                 - AuthorizationHeaderFilter
 
@@ -69,11 +85,23 @@ spring:
             - id: diary-service
               uri: ${DIARY_SERVICE}
               predicates:
-                - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**
+                - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
               filters:
                 - AuthorizationHeaderFilter
 
-# JWT 정책 (값은 환경변수)
+# Swagger UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui/index.html
+    urls:
+      - url: /api/users/v3/api-docs
+        name: user-service
+      - url: /api/social/v3/api-docs
+        name: social-service
+      - url: /api/diaries/v3/api-docs
+        name: diary-service
+
+# JWT 토큰 (환경변수 주입)
 token:
   expiration_time: ${TOKEN_EXPIRATION_TIME}
   secret: ${TOKEN_SECRET}
