@@ -12,7 +12,18 @@ spring:
                 allowedHeaders: ["*"]
                 allowCredentials: true
 
-# 서비스 주소 (Kubernetes Service DNS)
+# 서비스 주소 (Kubernetes Service DNS) ~..~
 USER_SERVICE: http://user-service.default.svc.cluster.local
 SOCIAL_SERVICE: http://social-service.default.svc.cluster.local
 DIARY_SERVICE: http://diary-service.default.svc.cluster.local
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
