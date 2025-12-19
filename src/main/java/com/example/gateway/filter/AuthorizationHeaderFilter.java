@@ -44,6 +44,8 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             ServerHttpRequest request = exchange.getRequest();
             String path = request.getURI().getPath();
 
+            log.warn("JWT FILTER PATH = [{}]", path);
+
             if (HttpMethod.OPTIONS.equals(request.getMethod())) {
                 return chain.filter(exchange);
             }
