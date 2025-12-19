@@ -41,44 +41,8 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            ServerHttpRequest request = exchange.getRequest();
-            String path = request.getURI().getPath();
-
-            log.warn("JWT FILTER PATH = [{}]", path);
-
-            if (HttpMethod.OPTIONS.equals(request.getMethod())) {
-                return chain.filter(exchange);
-            }
-
-            // JWT 검사 없이 통과
-            if (
-                    path.equals("/api/users/login") ||
-                            path.equals("/api/users/signup") ||
-                            path.equals("/api/users/create") ||
-                            path.startsWith("/api/users/v3/api-docs") ||
-                            path.startsWith("/swagger")
-            ) {
-                return chain.filter(exchange);
-            }
-
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
-            }
-
-            String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-            String jwt = authorizationHeader.replace("Bearer ", "");
-            //jwt에서 사용자 id 추출
-            JwtUser user = isJwtValid(jwt);
-            if (user == null) {
-                return onError(exchange, "JWT token is not valid", HttpStatus.UNAUTHORIZED);
-            }
-            //추출된 id를 요청 헤더에 추가
-            ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-USER-ID", user.getUserId())
-                    .header("X-USER-NAME", user.getUsername())
-                    .build();
-
-            return chain.filter(exchange.mutate().request(modifiedRequest).build());
+            log.error("=== AUTH FILTER HIT ===");
+            return chain.filter(exchange);
         };
     }
 
