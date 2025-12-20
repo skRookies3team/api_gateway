@@ -52,13 +52,18 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
             // JWT 검사 없이 통과
             if (
-                    path.equals("/api/users/login") ||
-                            path.equals("/api/users/signup") ||
-                            path.equals("/api/users/create") ||
-                            path.startsWith("/api/users/v3/api-docs") ||
-                            path.startsWith("/swagger")
+                    path.startsWith("/api/users/login") ||
+                    path.startsWith("/api/users/signup") ||
+                    path.startsWith("/api/users/create") ||
+                    path.startsWith("/api/users/v3/api-docs") ||
+                    path.startsWith("/swagger")
             ) {
-                return chain.filter(exchange);
+                // 로그인/회원가입에서는 Authorization 헤더 제거
+                ServerHttpRequest cleanRequest = request.mutate()
+                        .headers(h -> h.remove(HttpHeaders.AUTHORIZATION))
+                        .build();
+
+                return chain.filter(exchange.mutate().request(cleanRequest).build());
             }
 
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
@@ -67,7 +72,6 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
             String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
             if (!authorizationHeader.startsWith("Bearer ")) {
-                log.warn("Invalid Authorization header format");
                 return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
             }
             String jwt = authorizationHeader.substring(7);
