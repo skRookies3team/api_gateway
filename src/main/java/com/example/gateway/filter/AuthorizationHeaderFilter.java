@@ -50,7 +50,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                 return chain.filter(exchange);
             }
 
-            // JWT 토큰 검사 없이 통과
+            // JWT 검사 없이 통과
             if (
                     path.equals("/api/users/login") ||
                             path.equals("/api/users/signup") ||
