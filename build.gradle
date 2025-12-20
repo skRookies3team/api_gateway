@@ -41,6 +41,8 @@ dependencies {
 
     // macOS(Apple Silicon) DNS 오류 해결용 라이브러리
     runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.101.Final:osx-aarch_64'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 dependencyManagement {

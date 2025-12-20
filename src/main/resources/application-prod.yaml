@@ -1,5 +1,4 @@
 # [Prod 환경 변수 설정]
-
 # 1. 서비스 주소 (Kubernetes DNS)
 USER_SERVICE: http://user-service.default.svc.cluster.local
 SOCIAL_SERVICE: http://social-service.default.svc.cluster.local

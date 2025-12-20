@@ -6,86 +6,88 @@ spring:
     name: apigateway-service
   cloud:
     gateway:
-      # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "${CORS_ALLOWED_ORIGIN}"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
+      server:
+        webflux:
+          # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "${CORS_ALLOWED_ORIGIN}"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
 
-      # 공통 필터
-      default-filters:
-        - name: GlobalFilter
-          args:
-            baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
-            preLogger: true
-            postLogger: true
+          # 공통 필터
+          default-filters:
+            - name: GlobalFilter
+              args:
+                baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
+                preLogger: true
+                postLogger: true
 
-      # [라우팅 설정] URI를 환경변수(${..._SERVICE})로 설정
-      routes:
-        # --- Swagger API Docs ---
-        - id: user-service-docs
-          uri: ${USER_SERVICE}
-          predicates:
-            - Path=/api/users/v3/api-docs
+          # [라우팅 설정] URI를 환경변수(${..._SERVICE})로 설정
+          routes:
+            # --- Swagger API Docs ---
+            - id: user-service-docs
+              uri: ${USER_SERVICE}
+              predicates:
+                - Path=/api/users/v3/api-docs
 
-        - id: social-service-docs
-          uri: ${SOCIAL_SERVICE}
-          predicates:
-            - Path=/api/social/v3/api-docs
-          filters:
-            - SetPath=/v3/api-docs
+            - id: social-service-docs
+              uri: ${SOCIAL_SERVICE}
+              predicates:
+                - Path=/api/social/v3/api-docs
+              filters:
+                - SetPath=/v3/api-docs
 
-        - id: diary-service-docs
-          uri: ${DIARY_SERVICE}
-          predicates:
-            - Path=/api/diaries/v3/api-docs
+            - id: diary-service-docs
+              uri: ${DIARY_SERVICE}
+              predicates:
+                - Path=/api/diaries/v3/api-docs
 
-        # --- User Service (로그인/회원가입) ---
-        - id: user-service-login
-          uri: ${USER_SERVICE}
-          predicates:
-            - Path=/api/users/login
-            - Method=POST
+            # --- User Service (로그인/회원가입) ---
+            - id: user-service-login
+              uri: ${USER_SERVICE}
+              predicates:
+                - Path=/api/users/login
+#                - Method=POST
 
-        - id: user-service-signup
-          uri: ${USER_SERVICE}
-          predicates:
-            - Path=/api/users/signup, /api/users/create
-            - Method=POST
+            - id: user-service-signup
+              uri: ${USER_SERVICE}
+              predicates:
+                - Path=/api/users/signup/**
+#                - Method=POST
 
-        # --- User Service (인증 필요) ---
-        - id: user-service
-          uri: ${USER_SERVICE}
-          predicates:
-            - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**
-          filters:
-            - AuthorizationHeaderFilter
+            # --- User Service (인증 필요) ---
+            - id: user-service
+              uri: ${USER_SERVICE}
+              predicates:
+                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
+              filters:
+                - AuthorizationHeaderFilter
 
-        # --- Social Service (검색 기능 포함) ---
-        - id: social-service
-          uri: ${SOCIAL_SERVICE}
-          predicates:
-            - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
-          filters:
-            - AuthorizationHeaderFilter
+            # --- Social Service (검색 기능 포함) ---
+            - id: social-service
+              uri: ${SOCIAL_SERVICE}
+              predicates:
+                - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
+              filters:
+                - AuthorizationHeaderFilter
 
-        # --- Diary Service ---
-        - id: diary-service
-          uri: ${DIARY_SERVICE}
-          predicates:
-            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
-          filters:
-            - AuthorizationHeaderFilter
+            # --- Diary Service ---
+            - id: diary-service
+              uri: ${DIARY_SERVICE}
+              predicates:
+                - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
+              filters:
+                - AuthorizationHeaderFilter
 
 # Swagger UI
 springdoc:
