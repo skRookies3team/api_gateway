@@ -1,13 +1,13 @@
 # [Prod 환경 변수 설정]
 # 1. 서비스 주소 (Kubernetes DNS)
-USER_SERVICE: http://user-service.default.svc.cluster.local
-SOCIAL_SERVICE: http://social-service.default.svc.cluster.local
-DIARY_SERVICE: http://diary-service.default.svc.cluster.local
+USER_SERVICE:  http://user-service.user-service.svc.cluster.local
+SOCIAL_SERVICE: http://social-service.social-service.svc.cluster.local
+DIARY_SERVICE:  http://diary-service.diary-service.svc.cluster.local
 
 # 2. CORS 허용 도메인 (CloudFront)
 CORS_ALLOWED_ORIGIN: https://d3uvkb1qxxcp2y.cloudfront.net
 
 # 3. JWT 설정 (K8s Secret이나 환경변수에서 주입받도록 설정하거나, 여기에 값 입력)
 # 실제 배포 시에는 보안을 위해 K8s Secret을 통해 OS 환경변수로 주입받는 것이 좋습니다.
-TOKEN_SECRET: ${ENV_TOKEN_SECRET}
-TOKEN_EXPIRATION_TIME: ${ENV_TOKEN_EXPIRATION_TIME}
+TOKEN_SECRET: ${TOKEN_SECRET}
+TOKEN_EXPIRATION_TIME: ${TOKEN_EXPIRATION_TIME}
