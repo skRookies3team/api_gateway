@@ -50,6 +50,14 @@ spring:
           predicates:
             - Path=/api/diaries/v3/api-docs
 
+        - id: petmate-service-docs
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/api/petmate/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+
+
         # --- User Service (로그인/회원가입) ---
         - id: user-service-login
           uri: ${USER_SERVICE}
@@ -79,11 +87,28 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+        # 1. [인증 불필요] 펫메이트 서비스 (주소 검색, 공개 API)
+        # AuthorizationHeaderFilter를 적용하지 않음
+        - id: petmate-service-public
+          uri: ${PETMATE_SERVICE}
+          predicates:
+          # geocoding 관련 API는 토큰 없이도 접근 가능하게 설정
+            - Path=/api/geocoding/**, /api/petmate-service/v3/api-docs, /api/petmate/location/**
+
+      # 2. [인증 필요] 펫메이트 서비스 (채팅, 매칭, 좋아요)
+      # 토큰이 없으면 401 에러 발생 (정상)
+        - id: petmate-service
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/api/petmate/**, /api/messages/**
+          filters:
+            - AuthorizationHeaderFilter
+
         # --- Diary Service ---
         - id: diary-service
           uri: ${DIARY_SERVICE}
           predicates:
-            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**
+            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
           filters:
             - AuthorizationHeaderFilter
 
@@ -98,6 +123,8 @@ springdoc:
         name: social-service
       - url: /api/diaries/v3/api-docs
         name: diary-service
+      - url: /api/petmate/v3/api-docs # Swagger에도 추가
+        name: petmate-service
 
 # JWT 토큰 (환경변수 주입)
 token:
