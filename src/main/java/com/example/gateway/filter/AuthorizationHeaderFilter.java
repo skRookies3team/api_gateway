@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpMethod;
 
 @Component
 @Slf4j
@@ -41,13 +42,39 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
+            String path = request.getURI().getPath();
+
+            log.warn("JWT FILTER PATH = [{}]", path);
+
+            if (HttpMethod.OPTIONS.equals(request.getMethod())) {
+                return chain.filter(exchange);
+            }
+
+            // JWT 검사 없이 통과
+            if (
+                    path.startsWith("/api/users/login") ||
+                    path.startsWith("/api/users/signup") ||
+                    path.startsWith("/api/users/create") ||
+                    path.startsWith("/api/users/v3/api-docs") ||
+                    path.startsWith("/swagger")
+            ) {
+                // 로그인/회원가입에서는 Authorization 헤더 제거
+                ServerHttpRequest cleanRequest = request.mutate()
+                        .headers(h -> h.remove(HttpHeaders.AUTHORIZATION))
+                        .build();
+
+                return chain.filter(exchange.mutate().request(cleanRequest).build());
+            }
 
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
             }
 
             String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-            String jwt = authorizationHeader.replace("Bearer ", "");
+            if (!authorizationHeader.startsWith("Bearer ")) {
+                return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
+            }
+            String jwt = authorizationHeader.substring(7);
             //jwt에서 사용자 id 추출
             JwtUser user = isJwtValid(jwt);
             if (user == null) {
@@ -74,7 +101,15 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     }
 
     private JwtUser isJwtValid(String jwt) {
-        byte[] secretKeyBytes = env.getProperty("token.secret").getBytes();
+        String secret = env.getProperty("token.secret");
+
+        if (secret == null || secret.isBlank()) {
+            log.error("JWT secret is missing. Check TOKEN_SECRET env");
+            return null;
+        }
+
+        byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
+
         SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
         //jwt를 파싱하고 Body에서 Subject(사용자 ID)를 추출
         String userId = null;
@@ -90,7 +125,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             username = claims.get("username", String.class);
 
         } catch (Exception ex) {
-            log.error("JWT 토큰 파싱 오류: {}", ex.getMessage());
+            log.warn("JWT parse failed: {}", ex.getMessage());
         }
 
         if (userId != null && !userId.isEmpty() && username != null && !username.isEmpty()) {
