@@ -52,13 +52,12 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
             // JWT 검사 없이 통과
             if (
-                    path.startsWith("/api/users/login") ||
-                    path.startsWith("/api/users/signup") ||
-                    path.startsWith("/api/users/create") ||
-                    path.startsWith("/api/users/v3/api-docs") ||
-                    path.startsWith("/swagger")
+                    path.equals("/api/users/login") ||
+                            path.equals("/api/users/signup") ||
+                            path.equals("/api/users/create") ||
+                            path.equals("/api/users/v3/api-docs") ||
+                            path.startsWith("/swagger")
             ) {
-                // 로그인/회원가입에서는 Authorization 헤더 제거
                 ServerHttpRequest cleanRequest = request.mutate()
                         .headers(h -> h.remove(HttpHeaders.AUTHORIZATION))
                         .build();
