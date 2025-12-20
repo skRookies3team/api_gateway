@@ -83,7 +83,7 @@ spring:
         - id: diary-service
           uri: ${DIARY_SERVICE}
           predicates:
-            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**
+            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
           filters:
             - AuthorizationHeaderFilter
 
