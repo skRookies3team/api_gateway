@@ -111,7 +111,7 @@ spring:
               filters:
                 - AuthorizationHeaderFilter
 
-# Swagger UI
+# Swagger UI#
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
