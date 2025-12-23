@@ -52,7 +52,9 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
             // JWT 검사 없이 통과
             if (
-                    path.equals("/api/users/login") ||
+                    path.equals("/api/health") ||
+                            path.startsWith("/api/health/") ||
+                            path.equals("/api/users/login") ||
                             path.equals("/api/users/signup") ||
                             path.equals("/api/users/create") ||
                             path.equals("/api/users/v3/api-docs") ||

@@ -70,6 +70,13 @@ spring:
               predicates:
                 - Path=/api/users/signup/**
 
+            - id: user-service-health
+              uri: ${USER_SERVICE}
+              predicates:
+                - Path=/api/health
+              filters:
+                - SetPath=/actuator/health
+
             # --- User Service (인증 필요) ---
             - id: user-service
               uri: ${USER_SERVICE}
