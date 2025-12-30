@@ -4,121 +4,122 @@ server:
 spring:
   application:
     name: apigateway-service
+
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+
   cloud:
     gateway:
-      server:
-        webflux:
-          # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins:
-                  - "${CORS_ALLOWED_ORIGIN}"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - PATCH
-                  - OPTIONS
-                allowedHeaders: "*"
-                allowCredentials: true
+      # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "${CORS_ALLOWED_ORIGIN}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
 
-          # 공통 필터
-          default-filters:
-            - name: GlobalFilter
-              args:
-                baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
-                preLogger: true
-                postLogger: true
+      # 공통 필터
+      default-filters:
+        - name: GlobalFilter
+          args:
+            baseMessage: Spring Cloud Gateway WebFlux GlobalFilter
+            preLogger: true
+            postLogger: true
 
-          # [라우팅 설정] URI를 환경변수(${..._SERVICE})로 설정
-          routes:
-            # --- Swagger API Docs ---
-            - id: user-service-docs
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/users/v3/api-docs
+      # [라우팅 설정] URI를 환경변수(${..._SERVICE})로 설정
+      routes:
+        # --- Swagger API Docs ---
+        - id: user-service-docs
+          uri: ${USER_SERVICE}
+          predicates:
+            - Path=/api/users/v3/api-docs
 
-            - id: social-service-docs
-              uri: ${SOCIAL_SERVICE}
-              predicates:
-                - Path=/api/social/v3/api-docs
-              filters:
-                - SetPath=/v3/api-docs
+        - id: social-service-docs
+          uri: ${SOCIAL_SERVICE}
+          predicates:
+            - Path=/api/social/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
 
-            - id: diary-service-docs
-              uri: ${DIARY_SERVICE}
-              predicates:
-                - Path=/api/diaries/v3/api-docs
+        - id: diary-service-docs
+          uri: ${DIARY_SERVICE}
+          predicates:
+            - Path=/api/diaries/v3/api-docs
 
-            - id: petmate-service-docs
-              uri: ${PETMATE_SERVICE}
-              predicates:
-                - Path=/api/petmate/v3/api-docs
-              filters:
-                - SetPath=/v3/api-docs
+        - id: petmate-service-docs
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/api/petmate/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
 
-            # --- User Service (로그인/회원가입) ---
-            - id: user-service-login
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/users/login
+        # --- User Service (로그인/회원가입) ---
+        - id: user-service-login
+          uri: ${USER_SERVICE}
+          predicates:
+            - Path=/api/users/login
 
-            - id: user-service-signup
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/users/signup/**
+        - id: user-service-signup
+          uri: ${USER_SERVICE}
+          predicates:
+            - Path=/api/users/signup/**
 
-            - id: user-service-health
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/health
-              filters:
-                - SetPath=/actuator/health
+        - id: user-service-health
+          uri: ${USER_SERVICE}
+          predicates:
+            - Path=/api/health
+          filters:
+            - SetPath=/actuator/health
 
-            # --- User Service (인증 필요) ---
-            - id: user-service
-              uri: ${USER_SERVICE}
-              predicates:
-                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
-              filters:
-                - AuthorizationHeaderFilter
+        # --- User Service (인증 필요) ---
+        - id: user-service
+          uri: ${USER_SERVICE}
+          predicates:
+            - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
+          filters:
+            - AuthorizationHeaderFilter
 
-            # --- Social Service (검색 기능 포함) ---
-            - id: social-service
-              uri: ${SOCIAL_SERVICE}
-              predicates:
-                - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
-              filters:
-                - AuthorizationHeaderFilter
+        # --- Social Service (검색 기능 포함) ---
+        - id: social-service
+          uri: ${SOCIAL_SERVICE}
+          predicates:
+            - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
+          filters:
+            - AuthorizationHeaderFilter
 
-            # 1. [인증 불필요] 펫메이트 서비스 (주소 검색, 공개 API)
-            # AuthorizationHeaderFilter를 적용하지 않음
-            - id: petmate-service-public
-              uri: ${PETMATE_SERVICE}
-              predicates:
-              # geocoding 관련 API는 토큰 없이도 접근 가능하게 설정
-                - Path=/api/geocoding/**, /api/petmate-service/v3/api-docs, /api/petmate/location/**
+        # 1. [인증 불필요] 펫메이트 서비스 (주소 검색, 공개 API)
+        - id: petmate-service-public
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/api/geocoding/**, /api/petmate-service/v3/api-docs, /api/petmate/location/**
 
-            # 2. [인증 필요] 펫메이트 서비스 (채팅, 매칭, 좋아요)
-            # 토큰이 없으면 401 에러 발생 (정상)
-            - id: petmate-service
-              uri: ${PETMATE_SERVICE}
-              predicates:
-                - Path=/api/petmate/**, /api/messages/**
-              filters:
-                - AuthorizationHeaderFilter
+        # 2. [인증 필요] 펫메이트 서비스 (채팅, 매칭, 좋아요)
+        - id: petmate-service
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/api/petmate/**, /api/messages/**
+          filters:
+            - AuthorizationHeaderFilter
 
-            # --- Diary Service ---
-            - id: diary-service
-              uri: ${DIARY_SERVICE}
-              predicates:
-                - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
-              filters:
-                - AuthorizationHeaderFilter
+        # --- Diary Service ---
+        - id: diary-service
+          uri: ${DIARY_SERVICE}
+          predicates:
+            - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
+          filters:
+            - AuthorizationHeaderFilter
 
-# Swagger UI#
+# Swagger UI
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
@@ -129,7 +130,7 @@ springdoc:
         name: social-service
       - url: /api/diaries/v3/api-docs
         name: diary-service
-      - url: /api/petmate/v3/api-docs # Swagger에도 추가
+      - url: /api/petmate/v3/api-docs
         name: petmate-service
 
 # JWT 토큰 (환경변수 주입)
