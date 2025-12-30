@@ -6,7 +6,7 @@ DIARY_SERVICE:  http://diary-service.diary-service.svc.cluster.local
 PETMATE_SERVICE: http://petmate-service.petmate-service.svc.cluster.local
 
 # 2. CORS 허용 도메인 (CloudFront)
-CORS_ALLOWED_ORIGIN: https://d3uvkb1qxxcp2y.cloudfront.net
+CORS_ALLOWED_ORIGIN: http://petlog-frontend-bucket.s3-website.ap-northeast-2.amazonaws.com
 
 # 3. JWT 설정 (K8s Secret이나 환경변수에서 주입받도록 설정하거나, 여기에 값 입력)
 # 실제 배포 시에는 보안을 위해 K8s Secret을 통해 OS 환경변수로 주입받는 것이 좋습니다.
