@@ -67,7 +67,7 @@ spring:
         - id: user-service-login
           uri: ${USER_SERVICE}
           predicates:
-            - Path=/api/users/login
+            - Path=/api/users/login, /api/users/ai
 
         - id: user-service-signup
           uri: ${USER_SERVICE}
