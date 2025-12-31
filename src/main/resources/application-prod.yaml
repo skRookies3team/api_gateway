@@ -1,29 +1,14 @@
-spring:
-  cloud:
-    gateway:
-      server:
-        webflux:
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins:
-                  - "https://d3uvkb1qxxcp2y.cloudfront.net"
-                allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
-                allowedHeaders: ["*"]
-                allowCredentials: true
-
-# 서비스 주소 (Kubernetes Service DNS)
-USER_SERVICE: http://user-service.user-service.svc.cluster.local
+# [Prod 환경 변수 설정]
+# 1. 서비스 주소 (Kubernetes DNS)
+USER_SERVICE:  http://user-service.user-service.svc.cluster.local
 SOCIAL_SERVICE: http://social-service.social-service.svc.cluster.local
-DIARY_SERVICE: http://diary-service.diary-service.svc.cluster.local
+DIARY_SERVICE:  http://diary-service.diary-service.svc.cluster.local
+PETMATE_SERVICE: http://petmate-service.petmate-service.svc.cluster.local
 
-management:
-  endpoints:
-    web:
-      base-path: /actuator
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
+# 2. CORS 허용 도메인 (CloudFront)
+CORS_ALLOWED_ORIGIN: https://www.yourpetlog.com
 
+# 3. JWT 설정 (K8s Secret이나 환경변수에서 주입받도록 설정하거나, 여기에 값 입력)
+# 실제 배포 시에는 보안을 위해 K8s Secret을 통해 OS 환경변수로 주입받는 것이 좋습니다.
+TOKEN_SECRET: ${TOKEN_SECRET}
+TOKEN_EXPIRATION_TIME: ${TOKEN_EXPIRATION_TIME}
