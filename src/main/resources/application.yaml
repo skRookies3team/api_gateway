@@ -111,6 +111,13 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+        # 3. [추가됨] 펫메이트 WebSocket 라우팅 (인증 필터 미적용)
+        # 소켓 핸드셰이크 요청(/ws-chat/**)을 펫메이트 서비스로 전달
+        - id: petmate-websocket
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/ws-chat/**
+
         # --- Diary Service ---
         - id: diary-service
           uri: ${DIARY_SERVICE}
