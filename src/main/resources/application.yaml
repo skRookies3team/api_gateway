@@ -63,7 +63,7 @@ spring:
             - id: user-service-login
               uri: ${USER_SERVICE}
               predicates:
-                - Path=/api/users/login
+                - Path=/api/users/login, /api/users/ai
 
             - id: user-service-signup
               uri: ${USER_SERVICE}
@@ -81,7 +81,7 @@ spring:
             - id: user-service
               uri: ${USER_SERVICE}
               predicates:
-                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
+                - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**, /api/notifications/**
               filters:
                 - AuthorizationHeaderFilter
 
