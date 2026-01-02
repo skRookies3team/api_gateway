@@ -1,5 +1,6 @@
 server:
   port: 8000
+  max-http-request-header-size: 16384
 
 spring:
   application:
@@ -12,6 +13,8 @@ spring:
 
   cloud:
     gateway:
+      httpclient:
+        max-header-size: 16384
       # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
       globalcors:
         cors-configurations:
