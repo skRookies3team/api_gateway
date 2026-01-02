@@ -67,7 +67,7 @@ spring:
         - id: user-service-login
           uri: ${USER_SERVICE}
           predicates:
-            - Path=/api/users/login
+            - Path=/api/users/login, /api/users/ai
 
         - id: user-service-signup
           uri: ${USER_SERVICE}
@@ -85,7 +85,7 @@ spring:
         - id: user-service
           uri: ${USER_SERVICE}
           predicates:
-            - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**
+            - Path=/api/users/**, /api/pets/**, /api/archives/**, /api/images/**, /api/coinlogs/**, /api/notifications/**
           filters:
             - AuthorizationHeaderFilter
 
@@ -110,6 +110,13 @@ spring:
             - Path=/api/petmate/**, /api/messages/**
           filters:
             - AuthorizationHeaderFilter
+
+        # 3. [추가됨] 펫메이트 WebSocket 라우팅 (인증 필터 미적용)
+        # 소켓 핸드셰이크 요청(/ws-chat/**)을 펫메이트 서비스로 전달
+        - id: petmate-websocket
+          uri: ${PETMATE_SERVICE}
+          predicates:
+            - Path=/ws-chat/**
 
         # --- Diary Service ---
         - id: diary-service
