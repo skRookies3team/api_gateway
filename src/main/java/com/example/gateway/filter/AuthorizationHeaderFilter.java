@@ -58,7 +58,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                             path.equals("/api/users/signup") ||
                             path.equals("/api/users/create") ||
                             path.equals("/api/users/v3/api-docs") ||
-                            path.startsWith("/api/messages") ||
+//                            path.startsWith("/api/messages") ||
                             path.startsWith("/swagger")
             ) {
                 ServerHttpRequest cleanRequest = request.mutate()
