@@ -4,6 +4,7 @@ USER_SERVICE:  http://user-service.user-service.svc.cluster.local
 SOCIAL_SERVICE: http://social-service.social-service.svc.cluster.local
 DIARY_SERVICE:  http://record-service.record-service.svc.cluster.local
 PETMATE_SERVICE: http://petmate-service.petmate-service.svc.cluster.local
+HEALTHCARE_SERVICE: http://healthcare-service.healthcare-service.svc.cluster.local
 
 # 2. CORS 허용 도메인 (CloudFront)
 CORS_ALLOWED_ORIGIN: https://www.yourpetlog.com

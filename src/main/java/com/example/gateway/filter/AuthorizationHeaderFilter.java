@@ -51,15 +51,14 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             }
 
             // JWT 검사 없이 통과
-            if (
-                    path.equals("/api/health") ||
-                            path.startsWith("/api/health/") ||
-                            path.equals("/api/users/login") ||
-                            path.equals("/api/users/signup") ||
-                            path.equals("/api/users/create") ||
-                            path.equals("/api/users/v3/api-docs") ||
-                            path.startsWith("/swagger")
-            ) {
+            if (path.equals("/api/health") ||
+                    path.startsWith("/api/health/") ||
+                    path.equals("/api/chat/health") || // [추가] Healthcare 헬스체크
+                    path.equals("/api/users/login") ||
+                    path.equals("/api/users/signup") ||
+                    path.equals("/api/users/create") ||
+                    path.equals("/api/users/v3/api-docs") ||
+                    path.startsWith("/swagger")) {
                 ServerHttpRequest cleanRequest = request.mutate()
                         .headers(h -> h.remove(HttpHeaders.AUTHORIZATION))
                         .build();
@@ -76,12 +75,12 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
                 return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
             }
             String jwt = authorizationHeader.substring(7);
-            //jwt에서 사용자 id 추출
+            // jwt에서 사용자 id 추출
             JwtUser user = isJwtValid(jwt);
             if (user == null) {
                 return onError(exchange, "JWT token is not valid", HttpStatus.UNAUTHORIZED);
             }
-            //추출된 id를 요청 헤더에 추가
+            // 추출된 id를 요청 헤더에 추가
             ServerHttpRequest modifiedRequest = request.mutate()
                     .header("X-USER-ID", user.getUserId())
                     .header("X-USER-NAME", user.getUsername())
@@ -112,7 +111,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
 
         SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
-        //jwt를 파싱하고 Body에서 Subject(사용자 ID)를 추출
+        // jwt를 파싱하고 Body에서 Subject(사용자 ID)를 추출
         String userId = null;
         String username = null;
 
@@ -139,6 +138,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     public static class JwtUser {
         private final String userId;
         private final String username;
+
         public JwtUser(String userId, String username) {
             this.userId = userId;
             this.username = username;

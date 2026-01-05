@@ -5,6 +5,7 @@ USER_SERVICE: http://localhost:8080
 SOCIAL_SERVICE: http://localhost:8083
 DIARY_SERVICE: http://localhost:8087
 PETMATE_SERVICE: http://localhost:8089
+HEALTHCARE_SERVICE: http://localhost:8085
 
 # 2. CORS 허용 도메인 (Frontend Local)
 CORS_ALLOWED_ORIGIN: http://localhost:5173

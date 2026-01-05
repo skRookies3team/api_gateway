@@ -128,6 +128,29 @@ spring:
             - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
           filters:
             - AuthorizationHeaderFilter
+        # --- Healthcare AI Chatbot Service ---
+        # [인증 불필요] Healthcare 헬스체크
+        - id: healthcare-service-health
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/chat/health
+            - Method=GET
+
+        # [인증 불필요] Healthcare Swagger API Docs
+        - id: healthcare-service-docs
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/chat/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+
+        # [인증 필요] Healthcare AI 채팅 API
+        - id: healthcare-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - AuthorizationHeaderFilter
 
 # Swagger UI
 springdoc:
@@ -142,6 +165,8 @@ springdoc:
         name: diary-service
       - url: /api/petmate/v3/api-docs
         name: petmate-service
+      - url: /api/chat/v3/api-docs
+        name: healthcare-service
 
 # JWT 토큰 (환경변수 주입)
 token:
