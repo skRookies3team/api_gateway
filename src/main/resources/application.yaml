@@ -152,6 +152,14 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+        # [인증 필요] Healthcare AI 모델 API
+        - id: healthcare-model-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/model/**
+          filters:
+            - AuthorizationHeaderFilter
+
 # Swagger UI
 springdoc:
   swagger-ui:
