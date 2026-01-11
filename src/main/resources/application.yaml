@@ -19,7 +19,7 @@ spring:
       # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
       globalcors:
         cors-configurations:
-          '[/**]':
+          "[/**]":
             allowedOrigins:
               - "${CORS_ALLOWED_ORIGIN}"
             allowedMethods:
@@ -138,7 +138,6 @@ spring:
           filters:
             - AuthorizationHeaderFilter
         # ========== Healthcare AI Chatbot Service ==========
-        
         # [인증 불필요] Healthcare 헬스체크
         - id: healthcare-health-check
           uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
@@ -162,7 +161,7 @@ spring:
           filters:
             - AuthorizationHeaderFilter
           metadata:
-            response-timeout: 60000  # 60초 (AI 응답 대기)
+            response-timeout: 60000 # 60초 (AI 응답 대기)
             connect-timeout: 5000
 
         # [인증 필요] 병원 검색 API (Geolocation)
@@ -190,12 +189,16 @@ spring:
             - AuthorizationHeaderFilter
 
         # [인증 필요] 3D 모델 생성 API
+        # ⚠️ 중요: 3D 생성은 5-10분 소요되므로 타임아웃 600초 필수!
         - id: healthcare-model-service
           uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
           predicates:
             - Path=/api/model/**
           filters:
             - AuthorizationHeaderFilter
+          metadata:
+            response-timeout: 600000 # 600초 (10분)
+            connect-timeout: 5000
 
         # [인증 필요] 수의사 지식베이스 RAG API
         - id: healthcare-vet-knowledge-service
