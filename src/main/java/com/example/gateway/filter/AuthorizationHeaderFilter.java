@@ -67,7 +67,7 @@ public class AuthorizationHeaderFilter
                 return chain.filter(exchange);
             }
 
-            // JWT 검사 없이 통과
+            // JWT 검사 없이 통과 (Public endpoints)
             if (path.equals("/api/health") ||
                     path.startsWith("/api/health/") ||
                     path.equals("/api/chat/health") ||

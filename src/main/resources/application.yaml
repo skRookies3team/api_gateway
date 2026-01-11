@@ -97,7 +97,7 @@ spring:
         - id: social-service
           uri: ${SOCIAL_SERVICE}
           predicates:
-            - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/messages/**, /api/search/**
+            - Path=/api/feeds/**, /api/comments/**, /api/follows/**, /api/search/**
           filters:
             - AuthorizationHeaderFilter
 
@@ -115,12 +115,20 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
-        # 3. [추가됨] 펫메이트 WebSocket 라우팅 (인증 필터 미적용)
-        # 소켓 핸드셰이크 요청(/ws-chat/**)을 펫메이트 서비스로 전달
+        # 3. 펫메이트 WebSocket 라우팅 (수정됨)
         - id: petmate-websocket
           uri: ${PETMATE_SERVICE}
           predicates:
-            - Path=/ws-chat/**
+            - Path=/api/ws-chat/** # [수정] 프론트가 보내는 경로 (/api 포함)
+          filters:
+            # [추가] /api/ws-chat/... 으로 들어온 걸 /ws-chat/... 으로 바꿔서 백엔드에 전달
+            - RewritePath=/api/ws-chat/(?<segment>.*), /ws-chat/${segment}
+
+            # CORS 중복 헤더 제거 (기존 유지)
+            - name: DedupeResponseHeader
+              args:
+                strategy: RETAIN_UNIQUE
+                name: Access-Control-Allow-Origin Access-Control-Allow-Credentials
 
         # --- Diary Service ---
         - id: diary-service
