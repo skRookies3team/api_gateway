@@ -1,6 +1,6 @@
 server:
   port: 8000
-  max-http-request-header-size: 16384
+  max-http-request-header-size: 65536
 
 spring:
   application:
@@ -14,7 +14,8 @@ spring:
   cloud:
     gateway:
       httpclient:
-        max-header-size: 16384
+        max-header-size: 65536
+        response-timeout: 30s
       # [CORS 설정] 환경변수(${CORS_ALLOWED_ORIGIN})로 도메인 주입
       globalcors:
         cors-configurations:
@@ -128,13 +129,14 @@ spring:
             - Path=/api/diaries/**, /api/recaps/**, /api/diary-queries/**, /api/v1/diary/styles/**, /api/locations/**
           filters:
             - AuthorizationHeaderFilter
-        # --- Healthcare AI Chatbot Service ---
+        # ========== Healthcare AI Chatbot Service ==========
+        
         # [인증 불필요] Healthcare 헬스체크
-        - id: healthcare-service-health
+        - id: healthcare-health-check
           uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
           predicates:
-            - Path=/api/chat/health
-            - Method=GET
+            - Path=/api/health/**
+          # AuthorizationHeaderFilter 없음 - Public API
 
         # [인증 불필요] Healthcare Swagger API Docs
         - id: healthcare-service-docs
@@ -144,19 +146,62 @@ spring:
           filters:
             - SetPath=/v3/api-docs
 
-        # [인증 필요] Healthcare AI 채팅 API
-        - id: healthcare-service
+        # [인증 필요] 기존 채팅 API (AI 응답에 시간이 걸리므로 타임아웃 증가)
+        - id: healthcare-chat-service
           uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
           predicates:
             - Path=/api/chat/**
           filters:
             - AuthorizationHeaderFilter
+          metadata:
+            response-timeout: 60000  # 60초 (AI 응답 대기)
+            connect-timeout: 5000
 
-        # [인증 필요] Healthcare AI 모델 API
+        # [인증 필요] 병원 검색 API (Geolocation)
+        - id: healthcare-hospital-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/healthcare/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # [인증 필요] 채팅 히스토리 API (Frontend 연동)
+        - id: healthcare-history-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/history/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # [인증 필요] WithaPet 스마트 청진기 API
+        - id: healthcare-withapet-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/withapet/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # [인증 필요] 3D 모델 생성 API
         - id: healthcare-model-service
           uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
           predicates:
             - Path=/api/model/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # [인증 필요] 수의사 지식베이스 RAG API
+        - id: healthcare-vet-knowledge-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/vet/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        # [인증 필요] 피부질환 분석 API
+        - id: healthcare-skin-disease-service
+          uri: ${HEALTHCARE_SERVICE:http://localhost:8085}
+          predicates:
+            - Path=/api/skin-disease/**
           filters:
             - AuthorizationHeaderFilter
 
